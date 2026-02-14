@@ -3,16 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Spin & Earn – Earn Coins & Withdraw Real Money</title>
+<title>Spin & Earn – Earn Coins & Withdraw Money</title>
 <meta name="description" content="Spin the wheel, watch ads, earn coins, and convert them into real money. Withdraw via eSewa, Khalti, or USDT. Join the best global earning site.">
 <meta name="keywords" content="earning site, spin to earn, earn coins, online money, eSewa, Khalti, USDT, rewards, play and earn">
 <meta name="robots" content="index, follow">
 
-<!-- Firebase SDK -->
+<!-- Firebase Stable Scripts -->
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-
 
 <style>
 body { margin:0; font-family: Arial,sans-serif; background:#f5f5f5; text-align:center; }
@@ -40,18 +39,19 @@ button:hover { background:#45a049; }
   <div id="progressBar"></div>
 </div>
 
-<button onclick="watchAd()">Watch Ad & Earn Coins</button>
-<button onclick="requestWithdrawal()">Request Withdrawal</button>
+<button id="watchAdButton">Watch Ad & Earn Coins</button>
+<button id="withdrawButton">Request Withdrawal</button>
 <div id="withdrawLog"></div>
 </div>
 
 <script>
+// 🔹 Splash Screen
 setTimeout(() => {
   document.getElementById('splash').style.display='none';
   document.getElementById('dashboard').style.display='block';
 }, 3000);
 
-// ---------- FIREBASE CONFIG ----------
+// 🔹 Firebase Config – REPLACE THIS WITH YOUR CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyBwTZEqtrQQioTqd4eurNl41g-3H_Xcdr8",
   authDomain: "spin-to-earn-2060.firebaseapp.com",
@@ -64,30 +64,29 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.database();
 
-// ---------- USER AUTH ----------
 let uid = null;
+
+// 🔹 Sign in anonymously
 auth.signInAnonymously().then(userCredential=>{
   uid = userCredential.user.uid;
   db.ref("users/"+uid).once("value").then(snapshot=>{
     if(!snapshot.exists()){
-      db.ref("users/"+uid).set({
-        coins:0,
-        tier:"tier2",
-        dailyAdsWatched:0
-      });
+      db.ref("users/"+uid).set({coins:0, tier:"tier2", dailyAdsWatched:0});
     }
     loadUserData();
   });
+}).catch(err=>{
+  alert("Firebase Auth Error: "+err.message);
 });
 
-// ---------- SETTINGS ----------
+// 🔹 Settings
 const coinsPerDollar = { tier1:40000, tier2:60000, tier3:80000 };
 const minWithdraw = 60000;
 const adRewardMin = 50;
 const adRewardMax = 100;
 const dailyAdLimit = 30;
 
-// ---------- FUNCTIONS ----------
+// 🔹 Load user data
 function loadUserData(){
   db.ref("users/"+uid).on("value", snapshot=>{
     const data = snapshot.val();
@@ -99,34 +98,33 @@ function loadUserData(){
   });
 }
 
+// 🔹 Watch Ad
 function watchAd(){
   db.ref("users/"+uid).once("value").then(snapshot=>{
     const data = snapshot.val();
     if(data.dailyAdsWatched >= dailyAdLimit){ alert("Daily ad limit reached!"); return; }
     const earned = Math.floor(Math.random()*(adRewardMax-adRewardMin+1))+adRewardMin;
     const newCoins = data.coins + earned;
-    db.ref("users/"+uid).update({
-      coins: newCoins,
-      dailyAdsWatched: data.dailyAdsWatched+1
-    });
+    db.ref("users/"+uid).update({coins: newCoins, dailyAdsWatched: data.dailyAdsWatched+1});
     alert(`You earned ${earned} coins!`);
   });
 }
 
+// 🔹 Withdraw
 function requestWithdrawal(){
   db.ref("users/"+uid).once("value").then(snapshot=>{
     const data = snapshot.val();
     if(data.coins < minWithdraw){ alert("You need more coins to withdraw."); return; }
     const requestRef = db.ref("withdrawals").push();
-    requestRef.set({
-      uid: uid,
-      coinsRequested: minWithdraw,
-      status: "pending",
-      timestamp: Date.now()
-    });
+    requestRef.set({uid: uid, coinsRequested: minWithdraw, status: "pending", timestamp: Date.now()});
     alert("Withdrawal requested! Admin will process it.");
   });
 }
+
+// 🔹 Button Listeners
+document.getElementById("watchAdButton").addEventListener("click", watchAd);
+document.getElementById("withdrawButton").addEventListener("click", requestWithdrawal);
+
 </script>
 </body>
 </html>
