@@ -63,6 +63,7 @@ setTimeout(() => {
 const firebaseConfig = {
   apiKey: "AIzaSyBwTZEqtrQQioTqd4eurNl41g-3H_Xcdr8",
   authDomain: "spin-to-earn-2060.firebaseapp.com",
+  databaseURL: https://spin-to-earn-2060-default-rtdb.asia-southeast1.firebasedatabase.app/
   projectId: "spin-to-earn-2060",
   storageBucket: "spin-to-earn-2060.firebasestorage.app",
   messagingSenderId: "144895038761",
@@ -107,15 +108,12 @@ function loadUserData(){
 }
 
 // 🔹 Watch Ad
-function watchAd(){
-  console.log("Watch Ad clicked");
-  if(!uid){ alert("User not logged in"); return; }
-  const earned = Math.floor(Math.random()*51)+50; // 50-100 coins
-  db.ref("users/"+uid).once("value").then(snapshot=>{
-    let data = snapshot.val();
-    let newCoins = (data?.coins||0) + earned;
-    db.ref("users/"+uid).update({coins: newCoins, dailyAdsWatched: (data?.dailyAdsWatched||0)+1});
-    console.log("Coins updated:", newCoins);
+db.ref("users/"+uid).once("value").then(snapshot=>{
+    const data = snapshot.val();
+    if(data.dailyAdsWatched >= dailyAdLimit){ alert("Daily ad limit reached!"); return; }
+    const earned = Math.floor(Math.random()*(adRewardMax-adRewardMin+1))+adRewardMin;
+    const newCoins = data.coins + earned;
+    db.ref("users/"+uid).update({coins: newCoins, dailyAdsWatched: data.dailyAdsWatched+1});
     alert(`You earned ${earned} coins!`);
   });
 }
