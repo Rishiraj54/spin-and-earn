@@ -38,14 +38,6 @@ button:hover { background:#45a049; }
 <div id="progressContainer">
   <div id="progressBar"></div>
 </div>
-  auth.signInAnonymously().then(userCredential => {
-  console.log("User signed in:", userCredential.user.uid);
-  alert("Firebase connected! UID: " + userCredential.user.uid);
-}).catch(err => {
-  console.error("Auth error:", err);
-  alert("Firebase Auth Error: " + err.message);
-});
-
 
 <button id="watchAdButton">Watch Ad & Earn Coins</button>
 <button id="withdrawButton">Request Withdrawal</button>
@@ -108,7 +100,8 @@ function loadUserData(){
 }
 
 // 🔹 Watch Ad
-db.ref("users/"+uid).once("value").then(snapshot=>{
+function watchAd(){
+  db.ref("users/"+uid).once("value").then(snapshot=>{
     const data = snapshot.val();
     if(data.dailyAdsWatched >= dailyAdLimit){ alert("Daily ad limit reached!"); return; }
     const earned = Math.floor(Math.random()*(adRewardMax-adRewardMin+1))+adRewardMin;
@@ -117,7 +110,6 @@ db.ref("users/"+uid).once("value").then(snapshot=>{
     alert(`You earned ${earned} coins!`);
   });
 }
-
 
 // 🔹 Withdraw
 function requestWithdrawal(){
